@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Kubernetes Authors.
+Copyright 2019 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import (
 type ClusterregistryV1alpha1Interface interface {
 	RESTClient() rest.Interface
 	ClustersGetter
+	ClusterCredentialsesGetter
 }
 
 // ClusterregistryV1alpha1Client is used to interact with features provided by the clusterregistry.k8s.io group.
@@ -37,6 +38,10 @@ type ClusterregistryV1alpha1Client struct {
 
 func (c *ClusterregistryV1alpha1Client) Clusters(namespace string) ClusterInterface {
 	return newClusters(c, namespace)
+}
+
+func (c *ClusterregistryV1alpha1Client) ClusterCredentialses(namespace string) ClusterCredentialsInterface {
+	return newClusterCredentialses(c, namespace)
 }
 
 // NewForConfig creates a new ClusterregistryV1alpha1Client for the given config.

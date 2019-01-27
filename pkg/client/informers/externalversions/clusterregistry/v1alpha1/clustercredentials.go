@@ -31,59 +31,59 @@ import (
 	v1alpha1 "k8s.io/cluster-registry/pkg/client/listers/clusterregistry/v1alpha1"
 )
 
-// ClusterInformer provides access to a shared informer and lister for
-// Clusters.
-type ClusterInformer interface {
+// ClusterCredentialsInformer provides access to a shared informer and lister for
+// ClusterCredentialses.
+type ClusterCredentialsInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1alpha1.ClusterLister
+	Lister() v1alpha1.ClusterCredentialsLister
 }
 
-type clusterInformer struct {
+type clusterCredentialsInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 	namespace        string
 }
 
-// NewClusterInformer constructs a new informer for Cluster type.
+// NewClusterCredentialsInformer constructs a new informer for ClusterCredentials type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewClusterInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredClusterInformer(client, namespace, resyncPeriod, indexers, nil)
+func NewClusterCredentialsInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredClusterCredentialsInformer(client, namespace, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredClusterInformer constructs a new informer for Cluster type.
+// NewFilteredClusterCredentialsInformer constructs a new informer for ClusterCredentials type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredClusterInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredClusterCredentialsInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ClusterregistryV1alpha1().Clusters(namespace).List(options)
+				return client.ClusterregistryV1alpha1().ClusterCredentialses(namespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ClusterregistryV1alpha1().Clusters(namespace).Watch(options)
+				return client.ClusterregistryV1alpha1().ClusterCredentialses(namespace).Watch(options)
 			},
 		},
-		&clusterregistry_v1alpha1.Cluster{},
+		&clusterregistry_v1alpha1.ClusterCredentials{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *clusterInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredClusterInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *clusterCredentialsInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredClusterCredentialsInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *clusterInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&clusterregistry_v1alpha1.Cluster{}, f.defaultInformer)
+func (f *clusterCredentialsInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&clusterregistry_v1alpha1.ClusterCredentials{}, f.defaultInformer)
 }
 
-func (f *clusterInformer) Lister() v1alpha1.ClusterLister {
-	return v1alpha1.NewClusterLister(f.Informer().GetIndexer())
+func (f *clusterCredentialsInformer) Lister() v1alpha1.ClusterCredentialsLister {
+	return v1alpha1.NewClusterCredentialsLister(f.Informer().GetIndexer())
 }

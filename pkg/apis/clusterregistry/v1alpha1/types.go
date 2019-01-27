@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
 )
 
 // +genclient
@@ -167,3 +168,129 @@ type ClusterCondition struct {
 	// +optional
 	Message string `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
 }
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// ClusterCredentials combines a Cluster record with a set of credentials
+// (stored in a kubeconfig) that can be used to access the cluster. The status
+// of ClusterCredentials reflects whether those credentials can be used - from
+// within the cluster hosting the ClusterCredentials resource - to access the
+// cluster's healthz endpoint.
+//
+// ClusterCredentials is meant to enable creation of controllers that interact
+// with remote clusters and/or software that generates kubeconfig files that are
+// usable with remote clusters.
+//
+// +k8s:openapi-gen=true
+// +kubebuilder:resource:path=clustercredentials
+// +kubebuilder:subresource:status
+type ClusterCredentials struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   ClusterCredentialsSpec   `json:"spec,omitempty"`
+	Status ClusterCredentialsStatus `json:"status,omitempty"`
+}
+
+// ClusterCredentialsSpec defines the desired state of a ClusterCredentials.
+type ClusterCredentialsSpec struct {
+	// ClusterRef is a reference to a Cluster to use.
+	//
+	// An empty namespace field indicates a reference to a Cluster in the
+	// enclosing namespace.
+	ClusterRef v1.ObjectReference `json:"clusterRef,omitempty"`
+
+	// SecretRef is a reference to the secret in the namespace that contains a
+	// kubeconfig user with authentication information to use to access the
+	// referenced cluster. The secret must have a key named "authInfo" that
+	// contains a serialized kubeconfig AuthInfo.
+	//
+	// The AuthInfo type is defined here:
+	//
+	// https://github.com/kubernetes/client-go/blob/v9.0.0/tools/clientcmd/api/v1/types.go
+	//
+	// Not all fields of AuthInfo are supported; unsupported fields are:
+	//
+	// - auth-provider
+	// - exec
+	// - extensions
+	//
+	// Note, these fields are currently unsupported to make the semantics of
+	// this API easier to reason about; they may be allowed in the future (or
+	// even later in the lifespan of this PR).
+	//
+	// TODO: firm up relationship of clientcmdapi to cluster-registry re:
+	// version
+	//
+	// TODO: determine whether this is the right API to hold information
+	// like:
+	// - CA bundle
+	// - skip TLS verify
+	//
+	// This can be left empty if the cluster allows insecure access.
+	// +optional
+	SecretRef *v1.LocalObjectReference `json:"secretRef,omitempty"`
+}
+
+// ClusterCredentialsAuthInfo contains information that describes identity information
+// that kubernetes cluster can use to authenticate the user
+type ClusterCredentialsAuthInfo struct {
+	// ClusterAuthInfo provides indentity information of the user for the
+	// kubernetes cluster.
+	// +optional
+	ClusterAuthInfo *clientcmdapi.AuthInfo `json:"clusterAuthInfo,omitempty"`
+}
+
+// ClusterCredentialsStatus contains information about the current status of a
+// ClusterCredentials.
+type ClusterCredentialsStatus struct {
+	// Region is designation for a geographic area that contains a Cluster.
+	Region string `json:"region,omitempty"`
+	// AvailabilityZone is a distinct physical site within a single Region where
+	// a Cluster may be deployed.
+	AvailabilityZone string `json:"availabilityZone,omitempty"`
+
+	// Conditions is an array of current conditions.
+	// +optional
+	Conditions []ClusterCredentialsCondition `json:"conditions,omitempty"`
+}
+
+// ClusterCredentialsCondition contains condition information about a ClusterCredentials.
+type ClusterCredentialsCondition struct {
+	// Type is the type of the cluster condition.
+	Type ClusterConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=ClusterCredentialsConditionType"`
+
+	// Status is the status of the condition. One of True, False, Unknown.
+	Status v1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=ConditionStatus"`
+
+	// LastHeartbeatTime is the last time this condition was updated.
+	// +optional
+	LastHeartbeatTime metav1.Time `json:"lastHeartbeatTime,omitempty" protobuf:"bytes,3,opt,name=lastHeartbeatTime"`
+
+	// Last time the condition was checked.
+	// +optional
+	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty"`
+
+	// LastTransitionTime is the last time the condition changed from one status to another.
+	// +optional
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,4,opt,name=lastTransitionTime"`
+
+	// Reason is a (brief) reason for the condition's last status change.
+	// +optional
+	Reason string `json:"reason,omitempty" protobuf:"bytes,5,opt,name=reason"`
+
+	// Message is a human-readable message indicating details about the last status change.
+	// +optional
+	Message string `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
+}
+
+// ClusterCredentialsConditionType marks the kind of ClusterCredentials condition
+// being reported.
+type ClusterCredentialsConditionType string
+
+const (
+	// ClusterCredentialsHealthy represents that a ClusterCredentials is healthy
+	// as determined by the Cluster's healthz endpoint.
+	ClusterCredentialsHealthy ClusterCredentialsConditionType = "Healthy"
+)

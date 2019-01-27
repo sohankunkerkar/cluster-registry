@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Kubernetes Authors.
+Copyright 2019 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,6 +30,10 @@ type FakeClusterregistryV1alpha1 struct {
 
 func (c *FakeClusterregistryV1alpha1) Clusters(namespace string) v1alpha1.ClusterInterface {
 	return &FakeClusters{c, namespace}
+}
+
+func (c *FakeClusterregistryV1alpha1) ClusterCredentialses(namespace string) v1alpha1.ClusterCredentialsInterface {
+	return &FakeClusterCredentialses{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
