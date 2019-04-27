@@ -5,3 +5,6 @@ examples/samplecontainer/contents/slackcontroller
 vendor/
 Gopkg.lock
 Gopkg.toml
+Makefile
+PROJECT
+config/
